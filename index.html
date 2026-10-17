@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Abyssal Vault: Sunken Treasure</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -78,39 +78,41 @@
              ========================================= -->
         <div id="hud-overlay" class="hidden">
             <div class="hud-top-bar">
-                <!-- Gauges: Health, Oxygen, Boost -->
-                <div class="hud-gauges">
-                    <div class="gauge-row">
-                        <span class="gauge-label">HULL</span>
-                        <div class="gauge-bar-bg"><div id="hud-health-bar" class="gauge-fill health"></div></div>
+                <!-- Left: Gauges & Depth Box -->
+                <div class="hud-left-group">
+                    <div class="hud-gauges">
+                        <div class="gauge-row">
+                            <span class="gauge-label">HULL</span>
+                            <div class="gauge-bar-bg"><div id="hud-health-bar" class="gauge-fill health"></div></div>
+                        </div>
+                        <div class="gauge-row">
+                            <span class="gauge-label">O₂</span>
+                            <div class="gauge-bar-bg"><div id="hud-oxygen-bar" class="gauge-fill oxygen"></div></div>
+                        </div>
+                        <div class="gauge-row">
+                            <span class="gauge-label">BOOST</span>
+                            <div class="gauge-bar-bg"><div id="hud-boost-bar" class="gauge-fill boost"></div></div>
+                        </div>
                     </div>
-                    <div class="gauge-row">
-                        <span class="gauge-label">O₂</span>
-                        <div class="gauge-bar-bg"><div id="hud-oxygen-bar" class="gauge-fill oxygen"></div></div>
-                    </div>
-                    <div class="gauge-row">
-                        <span class="gauge-label">BOOST</span>
-                        <div class="gauge-bar-bg"><div id="hud-boost-bar" class="gauge-fill boost"></div></div>
-                    </div>
-                </div>
-
-                <!-- Center Depth, Mission, and Oxygen Notification -->
-                <div class="hud-center-stats">
                     <div id="hud-depth" class="hud-depth-box">0m</div>
-                    <div id="hud-objective" class="hud-objective-text">MISSION: DIVE TO SHIPWRECK</div>
-                    <div id="hud-oxygen-recharge" class="hud-oxygen-recharge hidden">🫧 O₂ RECHARGING...</div>
                 </div>
 
-                <!-- Right Stats: Coins, Ammo, Score, Home & Settings -->
+                <!-- Right: Inventory, Score, Home & Settings Buttons -->
                 <div class="hud-right-stats">
                     <div class="hud-items-row">
                         <span id="hud-coins">🪙 0</span>
                         <span id="hud-torpedo-count">🚀 × 3</span>
-                        <span id="hud-score">SCORE: 0</span>
-                        <button id="hud-home-btn" class="pixel-btn hud-icon-btn btn-danger" title="Return to Home">🏠</button>
-                        <button id="hud-settings-btn" class="pixel-btn hud-icon-btn" title="Settings">⚙</button>
+                        <span id="hud-score" class="hud-score-badge">SCORE: 0</span>
+                        <button id="hud-home-btn" class="pixel-btn hud-icon-btn btn-danger" title="Return to Home" aria-label="Home">🏠</button>
+                        <button id="hud-settings-btn" class="pixel-btn hud-icon-btn" title="Settings" aria-label="Settings">⚙</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Floating Non-Obstructive Bar (Objective & Recharge Notification) -->
+            <div class="hud-floating-bar">
+                <div id="hud-oxygen-recharge" class="hud-oxygen-recharge hidden">🫧 O₂ RECHARGING...</div>
+                <div id="hud-objective" class="hud-objective-text">MISSION: DIVE TO SHIPWRECK</div>
             </div>
 
             <!-- Danger Alarm (Phase 3) -->
@@ -123,24 +125,30 @@
              TOUCH CONTROLS (Mobile / Tablet / Mouse)
              ========================================= -->
         <div id="touch-controls" class="hidden">
+            <!-- Sleek Arcade Virtual D-Pad -->
             <div class="touch-dpad">
-                <div></div>
-                <div id="touch-up" class="touch-btn">▲</div>
-                <div></div>
-                <div id="touch-left" class="touch-btn">◀</div>
-                <div id="touch-down" class="touch-btn">▼</div>
-                <div id="touch-right" class="touch-btn">▶</div>
+                <button id="touch-up" class="touch-btn touch-btn-up" aria-label="Up">▲</button>
+                <button id="touch-left" class="touch-btn touch-btn-left" aria-label="Left">◀</button>
+                <div class="touch-dpad-center"></div>
+                <button id="touch-right" class="touch-btn touch-btn-right" aria-label="Right">▶</button>
+                <button id="touch-down" class="touch-btn touch-btn-down" aria-label="Down">▼</button>
             </div>
 
+            <!-- Sleek Floating Arcade Action Buttons -->
             <div class="touch-actions">
-                <button id="touch-sonar" class="pixel-btn touch-action-btn">
-                    <span>📡</span>SONAR
-                </button>
-                <button id="touch-torpedo" class="pixel-btn touch-action-btn btn-danger">
-                    <span>🚀</span>FIRE
-                </button>
-                <button id="touch-boost" class="pixel-btn touch-action-btn btn-gold">
-                    <span>⚡</span>BOOST
+                <div class="touch-action-row">
+                    <button id="touch-sonar" class="touch-action-btn touch-btn-sonar" aria-label="Sonar Echo">
+                        <span class="touch-btn-icon">📡</span>
+                        <span class="touch-btn-label">SONAR</span>
+                    </button>
+                    <button id="touch-torpedo" class="touch-action-btn touch-btn-fire" aria-label="Fire Torpedo">
+                        <span class="touch-btn-icon">🚀</span>
+                        <span class="touch-btn-label">FIRE</span>
+                    </button>
+                </div>
+                <button id="touch-boost" class="touch-action-btn touch-btn-boost" aria-label="Boost Thrusters">
+                    <span class="touch-btn-icon">⚡</span>
+                    <span class="touch-btn-label">BOOST</span>
                 </button>
             </div>
         </div>

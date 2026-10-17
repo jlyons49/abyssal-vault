@@ -17,6 +17,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
+        this.container = document.getElementById('game-container');
 
         // Internal rendering resolution (crisp retro virtual resolution)
         this.width = 640;
@@ -29,11 +30,18 @@ class Game {
         this.progression = new ProgressionManager();
         this.mathEngine = new MathEngine('grade_3');
         this.sprites = new SpriteRenderer();
-        this.submarine = new Submarine(320, 80);
+        this.submarine = new Submarine(360, 80);
         this.monster = new SeaMonster();
         this.selectedShip = 'pirate'; // 'pirate', 'titanic', 'plane'
         this.world = new World(this.selectedShip);
         this.settings = new SettingsManager(this.audio, this.mathEngine);
+
+        // Adjust canvas resolution dynamically to match device screen/container aspect ratio
+        this.updateCanvasResolution();
+        window.addEventListener('resize', () => this.updateCanvasResolution());
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.updateCanvasResolution(), 120);
+        });
 
         this.vault = new MathVault(this.mathEngine, this.audio, (result) => {
             this.onVaultSolved(result);
@@ -75,6 +83,35 @@ class Game {
         requestAnimationFrame((t) => this.loop(t));
     }
 
+    updateCanvasResolution() {
+        if (!this.container || !this.canvas) return;
+        const rect = this.container.getBoundingClientRect();
+        const screenW = rect.width || window.innerWidth;
+        const screenH = rect.height || window.innerHeight;
+        const aspect = screenW / screenH;
+
+        if (aspect < 1.0) {
+            // Mobile portrait orientation:
+            // Fix virtual width to 360 virtual pixels; height scaled proportionally
+            this.width = 360;
+            this.height = Math.max(360, Math.round(360 / aspect));
+        } else {
+            // Landscape orientation:
+            // Fix virtual height to 360 virtual pixels; width scaled proportionally
+            this.height = 360;
+            const maxW = this.world ? this.world.width : 720;
+            this.width = Math.min(maxW, Math.max(360, Math.round(360 * aspect)));
+        }
+
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+
+        // Maintain pixel sharpness
+        if (this.ctx) {
+            this.ctx.imageSmoothingEnabled = false;
+        }
+    }
+
     initInput() {
         // Keyboard listeners
         window.addEventListener('keydown', (e) => {
@@ -113,52 +150,77 @@ class Game {
             if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') this.input.boost = false;
         });
 
-        // Touch / On-screen controls for mobile or tablet
-        const bindBtn = (id, action) => {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            const startHandler = (e) => {
-                e.preventDefault();
-                this.audio.init();
-                this.input[action] = true;
-            };
-            const endHandler = (e) => {
-                e.preventDefault();
-                this.input[action] = false;
-            };
-            btn.addEventListener('mousedown', startHandler);
-            btn.addEventListener('mouseup', endHandler);
-            btn.addEventListener('touchstart', startHandler);
-            btn.addEventListener('touchend', endHandler);
+        // Touch & On-screen controls for mobile or tablet
+        const triggerHaptic = () => {
+            try {
+                if (navigator.vibrate) navigator.vibrate(15);
+            } catch (err) {}
         };
 
-        bindBtn('touch-left', 'left');
-        bindBtn('touch-right', 'right');
-        bindBtn('touch-up', 'up');
-        bindBtn('touch-down', 'down');
-        bindBtn('touch-boost', 'boost');
+        const bindDirectionBtn = (id, action) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
 
-        const sonarTouch = document.getElementById('touch-sonar');
-        if (sonarTouch) {
-            sonarTouch.addEventListener('click', (e) => {
-                e.preventDefault();
+            const startHandler = (e) => {
+                if (e.cancelable) e.preventDefault();
                 this.audio.init();
+                this.input[action] = true;
+                btn.classList.add('touch-active');
+                triggerHaptic();
+            };
+
+            const endHandler = (e) => {
+                if (e.cancelable) e.preventDefault();
+                this.input[action] = false;
+                btn.classList.remove('touch-active');
+            };
+
+            btn.addEventListener('mousedown', startHandler);
+            btn.addEventListener('mouseup', endHandler);
+            btn.addEventListener('mouseleave', endHandler);
+            btn.addEventListener('touchstart', startHandler, { passive: false });
+            btn.addEventListener('touchend', endHandler, { passive: false });
+            btn.addEventListener('touchcancel', endHandler, { passive: false });
+        };
+
+        bindDirectionBtn('touch-left', 'left');
+        bindDirectionBtn('touch-right', 'right');
+        bindDirectionBtn('touch-up', 'up');
+        bindDirectionBtn('touch-down', 'down');
+        bindDirectionBtn('touch-boost', 'boost');
+
+        const bindTapAction = (id, callback) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            const handleTap = (e) => {
+                if (e.cancelable) e.preventDefault();
+                this.audio.init();
+                btn.classList.add('touch-active');
+                triggerHaptic();
+                callback();
+                setTimeout(() => btn.classList.remove('touch-active'), 120);
+            };
+
+            btn.addEventListener('touchstart', handleTap, { passive: false });
+            btn.addEventListener('click', handleTap);
+        };
+
+        bindTapAction('touch-sonar', () => {
+            if (this.state === 'DIVING' || this.state === 'RETURNING') {
                 if (this.submarine.triggerSonar()) {
                     this.audio.playSonarPing();
                 }
-            });
-        }
+            }
+        });
 
-        const torpedoTouch = document.getElementById('touch-torpedo');
-        if (torpedoTouch) {
-            torpedoTouch.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.audio.init();
+        bindTapAction('touch-torpedo', () => {
+            if (this.state === 'DIVING' || this.state === 'RETURNING') {
                 if (this.world.fireTorpedo(this.submarine)) {
                     this.audio.playTorpedo();
                 }
-            });
-        }
+            }
+        });
     }
 
     initUI() {
@@ -426,7 +488,7 @@ class Game {
 
     startGame() {
         this.world = new World(this.selectedShip);
-        this.submarine.reset(320, 80);
+        this.submarine.reset(360, 80);
         this.monster.reset();
         this.score = 0;
         this.doubloons = 0;
