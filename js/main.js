@@ -235,9 +235,9 @@ class Game {
             this.audio.playLockClick();
         };
 
-        document.getElementById('ship-select-pirate').addEventListener('click', () => setShip('pirate', 'PIRATE GALLEON'));
-        document.getElementById('ship-select-titanic').addEventListener('click', () => setShip('titanic', 'R.M.S. TITANIC'));
-        document.getElementById('ship-select-plane').addEventListener('click', () => setShip('plane', 'B-17 FLYING FORTRESS'));
+        document.getElementById('ship-select-pirate').addEventListener('click', () => setShip('pirate', 'PIRATE SHIP (RANDOM WRECK)'));
+        document.getElementById('ship-select-titanic').addEventListener('click', () => setShip('titanic', 'CRUISE LINER (RANDOM WRECK)'));
+        document.getElementById('ship-select-plane').addEventListener('click', () => setShip('plane', 'AIRCRAFT WRECK (RANDOM WRECK)'));
 
         // Home Screen Actions
         document.getElementById('btn-home-dive').addEventListener('click', () => {
@@ -640,7 +640,7 @@ class Game {
             // Check if docked at shipwreck during descent
             if (this.state === 'DIVING' && this.world.isSubmarineAtShipwreck(this.submarine)) {
                 this.setState('VAULT');
-                this.vault.start(this.settings.settings.problemCount, this.selectedShip);
+                this.vault.start(this.settings.settings.problemCount, this.world.currentShipVariant || this.selectedShip);
             }
 
             // Monster update during RETURNING state
@@ -649,7 +649,7 @@ class Game {
 
                 // Monster roar audio during warning state
                 if (this.monster.state === 'warning' && this.monster.stateTimer < dt * 2) {
-                    this.audio.playMonsterRoar();
+                    this.audio.playMonsterRoar(this.monster.type);
                     this.triggerScreenShake(18);
                 }
 
@@ -746,17 +746,18 @@ class Game {
         // Mission objective text
         const objectiveEl = document.getElementById('hud-objective');
         if (this.state === 'DIVING') {
-            const shipName = this.selectedShip === 'titanic' ? 'TITANIC' : this.selectedShip === 'plane' ? 'B-17 WRECK' : 'PIRATE SHIP';
+            const shipName = this.world?.currentShipVariant?.shortName || (this.selectedShip === 'titanic' ? 'CRUISE LINER' : this.selectedShip === 'plane' ? 'B-17 WRECK' : 'PIRATE SHIP');
             objectiveEl.textContent = `MISSION: DIVE TO ${shipName} & RETRIEVE TREASURE`;
             objectiveEl.style.color = '#38bdf8';
         } else if (this.state === 'RETURNING') {
-            objectiveEl.textContent = 'DANGER! EVADE THE MONSTER & REACH THE SURFACE!';
+            const mName = this.monster?.name || 'MONSTER';
+            objectiveEl.textContent = `DANGER! EVADE ${mName} & REACH THE SURFACE!`;
             objectiveEl.style.color = '#ef4444';
 
             // Update Monster Proximity meter
             const dist = Math.round(Math.hypot(this.monster.x - this.submarine.x, this.monster.y - this.submarine.y));
             const proxBar = document.getElementById('monster-proximity-bar');
-            proxBar.textContent = `⚠ LEVIATHAN DISTANCE: ${dist}m ⚠`;
+            proxBar.textContent = `⚠ ${mName} DISTANCE: ${dist}m ⚠`;
             proxBar.style.backgroundColor = dist < 160 ? 'rgba(239, 68, 68, 0.85)' : 'rgba(185, 28, 28, 0.6)';
         }
     }
@@ -783,7 +784,9 @@ class Game {
         // Ship specific victory flavor
         const shipDescEl = document.getElementById('victory-ship-desc');
         if (this.hasTreasure) {
-            if (this.selectedShip === 'titanic') {
+            if (this.world?.currentShipVariant?.victoryDesc) {
+                shipDescEl.textContent = this.world.currentShipVariant.victoryDesc;
+            } else if (this.selectedShip === 'titanic') {
                 shipDescEl.textContent = 'YOU ESCAPED WITH THE TITANIC HEART OF THE OCEAN!';
             } else if (this.selectedShip === 'plane') {
                 shipDescEl.textContent = 'YOU ESCAPED WITH THE TOP SECRET FLIGHT RECORDER!';
@@ -836,13 +839,13 @@ class Game {
             }
         });
 
-        // 5. Draw Selected Sunken Shipwreck (Pirate, Titanic, or Plane)
+        // 5. Draw Selected Sunken Shipwreck (Randomized variant)
         this.sprites.drawShipwreck(
             this.ctx,
             this.world.shipwreck.x,
             this.world.shipwreck.y,
             this.world.shipwreck.looted ? 1 : 0,
-            this.selectedShip
+            this.world.currentShipVariant || this.selectedShip
         );
 
         // 6. Draw Sea Monster (if active in Phase 3)

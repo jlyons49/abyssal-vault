@@ -56,13 +56,14 @@ export class MathVault {
         });
     }
 
-    start(requiredProblems = 4, shipType = 'pirate') {
+    start(requiredProblems = 4, shipVariant = null) {
         this.active = true;
         this.requiredProblems = Math.max(2, requiredProblems);
         this.minRequired = this.requiredProblems - 1; // Requires n - 1 correct
         this.maxAllowedMisses = 1;
 
-        this.shipType = shipType;
+        this.shipVariant = shipVariant;
+        this.shipType = (shipVariant && typeof shipVariant === 'object') ? shipVariant.id : (shipVariant || 'pirate');
         this.questionIndex = 0;
         this.questionResults = new Array(this.requiredProblems).fill('pending');
         this.correctCount = 0;
@@ -74,10 +75,14 @@ export class MathVault {
         const titleEl = document.getElementById('vault-title');
         const subtitleEl = document.getElementById('vault-subtitle');
         if (titleEl && subtitleEl) {
-            if (shipType === 'titanic') {
+            if (shipVariant && typeof shipVariant === 'object') {
+                const icon = shipVariant.vaultType === 'safe' ? '💎' : shipVariant.vaultType === 'military' ? '🛩️' : '👑';
+                titleEl.textContent = `${icon} ${shipVariant.name.toUpperCase()} ${shipVariant.vaultLabel} ${icon}`;
+                subtitleEl.textContent = `DECIPHER THE COMBINATION LOCKS TO RETRIEVE: ${shipVariant.relicName.toUpperCase()}`;
+            } else if (this.shipType === 'titanic') {
                 titleEl.textContent = "💎 R.M.S. TITANIC PURSER'S SAFE 💎";
                 subtitleEl.textContent = 'DECIPHER THE COMBINATION DIALS TO RETRIEVE THE DIAMOND';
-            } else if (shipType === 'plane') {
+            } else if (this.shipType === 'plane') {
                 titleEl.textContent = '🛩️ B-17 FLIGHT RECORDER VAULT 🛩️';
                 subtitleEl.textContent = 'DECODE THE ENCRYPTED BLACK BOX TO SECURE TOP SECRET DATA';
             } else {

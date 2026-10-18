@@ -224,44 +224,119 @@ export class AudioEngine {
         noise.start(now);
     }
 
-    playMonsterRoar() {
+    playMonsterRoar(monsterType = 'leviathan') {
         if (this.isMuted || !this.ctx) return;
         const now = this.ctx.currentTime;
 
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        const filter = this.ctx.createBiquadFilter();
+        if (monsterType === 'kraken') {
+            // Eerie shrieking cephalopod squelch / alien wail
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
 
-        osc1.type = 'sawtooth';
-        osc2.type = 'triangle';
+            osc1.type = 'sawtooth';
+            osc2.type = 'sine';
 
-        osc1.frequency.setValueAtTime(70, now);
-        osc1.frequency.linearRampToValueAtTime(120, now + 0.4);
-        osc1.frequency.exponentialRampToValueAtTime(40, now + 1.2);
+            osc1.frequency.setValueAtTime(320, now);
+            osc1.frequency.exponentialRampToValueAtTime(140, now + 1.1);
 
-        osc2.frequency.setValueAtTime(73, now);
-        osc2.frequency.linearRampToValueAtTime(124, now + 0.4);
-        osc2.frequency.exponentialRampToValueAtTime(42, now + 1.2);
+            osc2.frequency.setValueAtTime(480, now);
+            osc2.frequency.linearRampToValueAtTime(650, now + 0.3);
+            osc2.frequency.exponentialRampToValueAtTime(90, now + 1.1);
 
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(350, now);
-        filter.frequency.linearRampToValueAtTime(800, now + 0.35);
-        filter.frequency.exponentialRampToValueAtTime(150, now + 1.2);
+            filter.type = 'bandpass';
+            filter.Q.setValueAtTime(4, now);
+            filter.frequency.setValueAtTime(600, now);
+            filter.frequency.linearRampToValueAtTime(1400, now + 0.25);
+            filter.frequency.exponentialRampToValueAtTime(250, now + 1.1);
 
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.65, now + 0.25);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.75, now + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
 
-        osc1.connect(filter);
-        osc2.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
 
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 1.2);
-        osc2.stop(now + 1.2);
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 1.1);
+            osc2.stop(now + 1.1);
+        } else if (monsterType === 'seaeater') {
+            // Infrasonic subterranean tectonic gut-rumble
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+
+            osc1.type = 'sawtooth';
+            osc2.type = 'square';
+
+            osc1.frequency.setValueAtTime(45, now);
+            osc1.frequency.linearRampToValueAtTime(72, now + 0.4);
+            osc1.frequency.exponentialRampToValueAtTime(28, now + 1.4);
+
+            osc2.frequency.setValueAtTime(48, now);
+            osc2.frequency.linearRampToValueAtTime(75, now + 0.4);
+            osc2.frequency.exponentialRampToValueAtTime(30, now + 1.4);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(220, now);
+            filter.frequency.linearRampToValueAtTime(450, now + 0.35);
+            filter.frequency.exponentialRampToValueAtTime(90, now + 1.4);
+
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.85, now + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 1.4);
+            osc2.stop(now + 1.4);
+        } else {
+            // Classic Leviathan roar
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+
+            osc1.type = 'sawtooth';
+            osc2.type = 'triangle';
+
+            osc1.frequency.setValueAtTime(70, now);
+            osc1.frequency.linearRampToValueAtTime(120, now + 0.4);
+            osc1.frequency.exponentialRampToValueAtTime(40, now + 1.2);
+
+            osc2.frequency.setValueAtTime(73, now);
+            osc2.frequency.linearRampToValueAtTime(124, now + 0.4);
+            osc2.frequency.exponentialRampToValueAtTime(42, now + 1.2);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(350, now);
+            filter.frequency.linearRampToValueAtTime(800, now + 0.35);
+            filter.frequency.exponentialRampToValueAtTime(150, now + 1.2);
+
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.65, now + 0.25);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 1.2);
+            osc2.stop(now + 1.2);
+        }
     }
 
     playLockClick() {

@@ -3,20 +3,135 @@
  * Handles depth zones, terrain caverns, particles, collectibles, hazards, and torpedoes.
  */
 
+export const SHIP_CATEGORIES = {
+    titanic: {
+        id: 'titanic',
+        label: 'CRUISE LINER',
+        buttonLabel: '🚢 CRUISE LINER',
+        variants: [
+            {
+                id: 'titanic',
+                name: 'R.M.S. Titanic',
+                shortName: 'R.M.S. TITANIC',
+                era: '1912 Luxury Ocean Liner',
+                vaultType: 'safe',
+                vaultLabel: "PURSER'S SAFE",
+                relicName: 'The Heart of the Ocean Diamond',
+                victoryDesc: 'YOU ESCAPED WITH THE TITANIC HEART OF THE OCEAN!',
+                style: 'titanic_classic'
+            },
+            {
+                id: 'britannic',
+                name: 'H.M.H.S. Britannic',
+                shortName: 'H.M.H.S. BRITANNIC',
+                era: '1916 WWI Hospital Ship',
+                vaultType: 'safe',
+                vaultLabel: "SURGEON'S SAFE",
+                relicName: 'Royal Red Cross Medal & Golden Syringe',
+                victoryDesc: 'YOU ESCAPED WITH THE MEDICAL RELICS OF THE H.M.H.S. BRITANNIC!',
+                style: 'britannic_hospital'
+            },
+            {
+                id: 'modern_cruise',
+                name: 'Titanic II (Modern Megaship)',
+                shortName: 'TITANIC II',
+                era: '21st Century Luxury Mega-Liner',
+                vaultType: 'safe',
+                vaultLabel: 'VIP CRYPTO VAULT',
+                relicName: "Billionaire's Cryptographic Black Card & Diamond Hoard",
+                victoryDesc: 'YOU ESCAPED WITH THE BILLIONAIRE FORTUNE OF THE TITANIC II!',
+                style: 'modern_megaship'
+            }
+        ]
+    },
+    pirate: {
+        id: 'pirate',
+        label: 'PIRATE SHIP',
+        buttonLabel: '🏴‍☠️ PIRATE SHIP',
+        variants: [
+            {
+                id: 'black_barnacle',
+                name: 'The Black Barnacle',
+                shortName: 'BLACK BARNACLE',
+                era: '17th Century Ghost Galleon',
+                vaultType: 'chest',
+                vaultLabel: 'CURSED CHEST',
+                relicName: 'Heart of the Sea',
+                victoryDesc: 'YOU ESCAPED WITH THE CURSED GOLD OF THE BLACK BARNACLE!',
+                style: 'pirate_barnacle'
+            },
+            {
+                id: 'queen_anne',
+                name: "Queen Anne's Revenge",
+                shortName: 'QUEEN ANNE',
+                era: "Blackbeard's Cursed Flagship",
+                vaultType: 'chest',
+                vaultLabel: "BLACKBEARD'S HOARD",
+                relicName: "Blackbeard's Cursed Obsidian Skull",
+                victoryDesc: "YOU ESCAPED WITH THE FORBIDDEN HOARD OF QUEEN ANNE'S REVENGE!",
+                style: 'queen_anne'
+            },
+            {
+                id: 'flying_dutchman',
+                name: 'The Flying Dutchman',
+                shortName: 'FLYING DUTCHMAN',
+                era: 'Spectral Ghost Galleon',
+                vaultType: 'chest',
+                vaultLabel: "DEAD MAN'S CHEST",
+                relicName: 'The Still-Beating Phantom Heart',
+                victoryDesc: "YOU ESCAPED WITH DEAD MAN'S CHEST FROM THE FLYING DUTCHMAN!",
+                style: 'flying_dutchman'
+            }
+        ]
+    },
+    plane: {
+        id: 'plane',
+        label: 'PLANE WRECK',
+        buttonLabel: '🛩️ PLANE WRECK',
+        variants: [
+            {
+                id: 'b17_fortress',
+                name: 'B-17 Flying Fortress',
+                shortName: 'B-17 BOMBER',
+                era: 'WWII Heavy Patrol Bomber',
+                vaultType: 'military',
+                vaultLabel: 'FLIGHT VAULT',
+                relicName: 'Top Secret Military Flight Recorder',
+                victoryDesc: 'YOU ESCAPED WITH THE TOP SECRET B-17 FLIGHT RECORDER!',
+                style: 'b17_bomber'
+            },
+            {
+                id: 'p38_lightning',
+                name: 'P-38 Lightning (Bermuda Ghost)',
+                shortName: 'P-38 LIGHTNING',
+                era: 'Twin-Boom WWII Interceptor',
+                vaultType: 'military',
+                vaultLabel: 'AVIONICS LOCKBOX',
+                relicName: 'Bermuda Triangle Chronometer',
+                victoryDesc: 'YOU ESCAPED WITH THE LOST AVIONICS OF THE P-38 LIGHTNING!',
+                style: 'p38_lightning'
+            },
+            {
+                id: 'stealth_jet',
+                name: 'Sub-Orbital Stealth Jet',
+                shortName: 'STEALTH JET',
+                era: 'Classified Hypersonic Prototype',
+                vaultType: 'military',
+                vaultLabel: 'TITANIUM BLACK BOX',
+                relicName: 'Quantum Encryption Core',
+                victoryDesc: 'YOU ESCAPED WITH THE CLASSIFIED QUANTUM CORE OF THE STEALTH JET!',
+                style: 'stealth_jet'
+            }
+        ]
+    }
+};
+
 export class World {
-    constructor(shipType = 'pirate') {
+    constructor(category = 'pirate', variantId = null) {
         this.width = 720;
         this.height = 2400;
         this.surfaceY = 60;
         this.seafloorY = 2260;
-        this.shipType = shipType;
-        this.shipwreck = {
-            x: 360,
-            y: 2160,
-            dockRadius: 75,
-            looted: false,
-            type: shipType
-        };
 
         this.particles = [];
         this.collectibles = [];
@@ -26,17 +141,28 @@ export class World {
         this.caverns = [];
         this.oxygenVents = [];
 
-        this.initWorld(shipType);
+        this.initWorld(category, variantId);
     }
 
-    initWorld(shipType = 'pirate') {
-        this.shipType = shipType;
+    initWorld(category = 'pirate', variantId = null) {
+        this.category = SHIP_CATEGORIES[category] ? category : 'pirate';
+        const catData = SHIP_CATEGORIES[this.category];
+
+        if (variantId) {
+            this.currentShipVariant = catData.variants.find(v => v.id === variantId) || catData.variants[0];
+        } else {
+            // Randomly select one of the variations for this level category!
+            this.currentShipVariant = catData.variants[Math.floor(Math.random() * catData.variants.length)];
+        }
+
+        this.shipType = this.currentShipVariant.id;
         this.shipwreck = {
             x: 360,
             y: 2160,
             dockRadius: 75,
             looted: false,
-            type: shipType
+            category: this.category,
+            variant: this.currentShipVariant
         };
 
         this.particles = [];

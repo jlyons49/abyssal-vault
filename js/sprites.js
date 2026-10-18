@@ -438,16 +438,50 @@ export class SpriteRenderer {
      * - 'titanic': The Sunken R.M.S. Titanic
      * - 'plane': Downed WWII B-17 Flying Fortress Bomber
      */
-    drawShipwreck(ctx, x, y, progress = 0, shipType = 'pirate') {
+    drawShipwreck(ctx, x, y, progress = 0, variantOrType = 'pirate') {
         ctx.save();
         ctx.translate(Math.round(x), Math.round(y));
 
-        if (shipType === 'titanic') {
-            this.drawTitanicShipwreck(ctx, progress);
-        } else if (shipType === 'plane') {
-            this.drawPlaneShipwreck(ctx, progress);
-        } else {
-            this.drawPirateShipwreck(ctx, progress);
+        const style = (typeof variantOrType === 'object' && variantOrType !== null)
+            ? (variantOrType.style || variantOrType.id)
+            : variantOrType;
+
+        switch (style) {
+            case 'britannic':
+            case 'britannic_hospital':
+                this.drawBritannicShipwreck(ctx, progress);
+                break;
+            case 'modern_cruise':
+            case 'modern_megaship':
+                this.drawModernCruiseShipwreck(ctx, progress);
+                break;
+            case 'titanic':
+            case 'titanic_classic':
+                this.drawTitanicShipwreck(ctx, progress);
+                break;
+            case 'queen_anne':
+                this.drawQueenAnneShipwreck(ctx, progress);
+                break;
+            case 'flying_dutchman':
+                this.drawFlyingDutchmanShipwreck(ctx, progress);
+                break;
+            case 'pirate':
+            case 'black_barnacle':
+            case 'pirate_barnacle':
+                this.drawPirateShipwreck(ctx, progress);
+                break;
+            case 'p38_lightning':
+                this.drawP38Shipwreck(ctx, progress);
+                break;
+            case 'stealth_jet':
+                this.drawStealthJetShipwreck(ctx, progress);
+                break;
+            case 'plane':
+            case 'b17_fortress':
+            case 'b17_bomber':
+            default:
+                this.drawPlaneShipwreck(ctx, progress);
+                break;
         }
 
         ctx.restore();
@@ -708,6 +742,315 @@ export class SpriteRenderer {
     }
 
     /**
+     * 1b. Queen Anne's Revenge (Blackbeard's Cursed Flagship)
+     */
+    drawQueenAnneShipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Shrouds and rigging
+        ctx.strokeStyle = 'rgba(40, 10, 10, 0.75)';
+        ctx.lineWidth = 1.5;
+        for (let r = -38; r <= 18; r += 9) {
+            ctx.beginPath();
+            ctx.moveTo(-12, -165);
+            ctx.lineTo(r, -25);
+            ctx.stroke();
+        }
+
+        // Tall charred main timber mast
+        ctx.fillStyle = '#1c0d0d';
+        ctx.fillRect(-18, -180, 14, 160);
+        ctx.fillStyle = '#3f1d1d';
+        ctx.fillRect(-15, -180, 6, 160);
+
+        // Crow's nest with skull carving
+        ctx.fillStyle = '#1c0d0d';
+        ctx.fillRect(-28, -155, 34, 14);
+        ctx.fillStyle = '#b91c1c';
+        ctx.fillRect(-26, -153, 30, 10);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(-11, -148, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Yardarms
+        ctx.fillStyle = '#1c0d0d';
+        ctx.fillRect(-76, -125, 132, 9);
+        ctx.fillStyle = '#7f1d1d';
+        ctx.fillRect(-74, -123, 128, 4);
+
+        // Blackbeard's Crimson & Pitch-Black Battle Sails (torn & fluttering)
+        const sailSway = Math.sin(now / 700) * 5;
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath();
+        ctx.moveTo(-70, -118);
+        ctx.quadraticCurveTo(-10, -96, 50, -118);
+        ctx.lineTo(45 + sailSway, -50);
+        ctx.lineTo(15 + sailSway, -68);
+        ctx.lineTo(-10 + sailSway, -45);
+        ctx.lineTo(-40 + sailSway, -66);
+        ctx.lineTo(-65 + sailSway, -48);
+        ctx.closePath();
+        ctx.fill();
+
+        // Bold Blood-Red Battle Stripes on Sails
+        ctx.fillStyle = '#991b1b';
+        for (let sx = -55; sx <= 35; sx += 24) {
+            ctx.beginPath();
+            ctx.moveTo(sx, -110);
+            ctx.lineTo(sx + 12, -108);
+            ctx.lineTo(sx + 8 + sailSway * 0.6, -58);
+            ctx.lineTo(sx - 4 + sailSway * 0.6, -58);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Hanging Sulfur Braziers with Flickering Fire & Embers
+        for (let bx of [-65, 35]) {
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(bx, -120);
+            ctx.lineTo(bx, -88);
+            ctx.stroke();
+
+            // Brazier bowl
+            ctx.fillStyle = '#18181b';
+            ctx.beginPath();
+            ctx.arc(bx, -84, 8, 0, Math.PI);
+            ctx.fill();
+
+            // Sulfur fire glow
+            const fireFlicker = 0.6 + Math.sin(now / 80 + bx) * 0.35;
+            ctx.fillStyle = `rgba(249, 115, 22, ${fireFlicker})`;
+            ctx.beginPath();
+            ctx.arc(bx, -88, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = `rgba(254, 240, 138, ${fireFlicker})`;
+            ctx.beginPath();
+            ctx.arc(bx, -88, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Charred Oak & Crimson Hull (Quarterdeck & Gun Decks)
+        ctx.fillStyle = '#180808';
+        ctx.beginPath();
+        ctx.moveTo(-155, 82);
+        ctx.lineTo(-145, 15);
+        ctx.lineTo(-182, -22); // Bowsprit base
+        ctx.lineTo(-120, -18);
+        ctx.lineTo(-80, -32);
+        ctx.lineTo(60, -32);
+        ctx.lineTo(95, -55);   // High stern castle
+        ctx.lineTo(152, -55);
+        ctx.lineTo(142, 82);
+        ctx.closePath();
+        ctx.fill();
+
+        // Crimson hull planking
+        const hullGrad = ctx.createLinearGradient(0, -35, 0, 75);
+        hullGrad.addColorStop(0, '#7f1d1d');
+        hullGrad.addColorStop(0.5, '#450a0a');
+        hullGrad.addColorStop(1, '#180808');
+        ctx.fillStyle = hullGrad;
+        ctx.beginPath();
+        ctx.moveTo(-148, 78);
+        ctx.lineTo(-138, 18);
+        ctx.lineTo(-118, -14);
+        ctx.lineTo(-78, -28);
+        ctx.lineTo(58, -28);
+        ctx.lineTo(92, -50);
+        ctx.lineTo(146, -50);
+        ctx.lineTo(138, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Gilded Gold Trim & Carvings along Quarterdeck Rail
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(88, -52, 60, 4);
+        ctx.fillRect(-78, -30, 138, 3);
+
+        // Gilded Demonic Figurehead at the Bowsprit
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.arc(-184, -20, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(-185, -22, 2, 0, Math.PI * 2);
+        ctx.fill();
+        // Figurehead skeletal horns
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-186, -26);
+        ctx.lineTo(-194, -36);
+        ctx.moveTo(-182, -26);
+        ctx.lineTo(-176, -37);
+        ctx.stroke();
+
+        // Menacing Triple-Deck Bronze Cannon Ports
+        for (let cx = -105; cx <= 115; cx += 22) {
+            ctx.fillStyle = '#09090b';
+            ctx.fillRect(cx, 8, 9, 9);
+            ctx.fillRect(cx - 8, 32, 9, 9);
+
+            ctx.fillStyle = '#991b1b';
+            ctx.fillRect(cx - 1, 5, 11, 3);
+            ctx.fillRect(cx - 9, 29, 11, 3);
+
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(cx - 4, 10, 6, 5);
+            ctx.fillRect(cx - 12, 34, 6, 5);
+        }
+
+        // Stern Windows with Cursed Crimson Lantern Glow
+        for (let wx = 100; wx <= 138; wx += 11) {
+            ctx.fillStyle = '#180808';
+            ctx.fillRect(wx, -44, 8, 12);
+            const flicker = 0.6 + Math.sin(now / 200 + wx) * 0.3;
+            ctx.fillStyle = `rgba(239, 68, 68, ${flicker})`;
+            ctx.fillRect(wx + 1, -43, 6, 10);
+        }
+
+        // Blackbeard's Hoard Chest Vault
+        this.drawVaultAirlock(ctx, 85, -20, 'chest', progress, "BLACKBEARD'S HOARD");
+    }
+
+    /**
+     * 1c. The Flying Dutchman (Spectral Ghost Galleon)
+     */
+    drawFlyingDutchmanShipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Spectral Ambient Phantom Mist Aura
+        const mistPulse = 0.45 + Math.sin(now / 500) * 0.2;
+        const ghostAura = ctx.createRadialGradient(0, 10, 20, 0, 10, 180);
+        ghostAura.addColorStop(0, `rgba(52, 211, 153, ${mistPulse * 0.7})`);
+        ghostAura.addColorStop(0.5, `rgba(16, 185, 129, ${mistPulse * 0.35})`);
+        ghostAura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = ghostAura;
+        ctx.fillRect(-220, -180, 440, 280);
+
+        // Ghostly Shrouds and Spectral Webbing
+        ctx.strokeStyle = `rgba(52, 211, 153, ${0.4 + Math.sin(now / 350) * 0.2})`;
+        ctx.lineWidth = 1.5;
+        for (let r = -40; r <= 20; r += 10) {
+            ctx.beginPath();
+            ctx.moveTo(-15, -165);
+            ctx.lineTo(r, -20);
+            ctx.stroke();
+        }
+
+        // Rotting Jade & Moss Timber Mast
+        ctx.fillStyle = '#022c22';
+        ctx.fillRect(-18, -175, 14, 155);
+        ctx.fillStyle = '#065f46';
+        ctx.fillRect(-15, -175, 6, 155);
+
+        // Spectral Crow's Nest
+        ctx.fillStyle = '#022c22';
+        ctx.fillRect(-26, -150, 30, 12);
+        ctx.fillStyle = '#059669';
+        ctx.fillRect(-24, -148, 26, 8);
+
+        // Main Yardarms
+        ctx.fillStyle = '#022c22';
+        ctx.fillRect(-75, -122, 130, 8);
+        ctx.fillStyle = '#047857';
+        ctx.fillRect(-73, -120, 126, 4);
+
+        // Billowing Translucent Spectral Sails (Ghost Silk)
+        const ghostSway = Math.sin(now / 600) * 6;
+        ctx.fillStyle = `rgba(16, 185, 129, ${0.45 + Math.sin(now / 400) * 0.15})`;
+        ctx.beginPath();
+        ctx.moveTo(-68, -114);
+        ctx.quadraticCurveTo(-10, -96, 48, -114);
+        ctx.lineTo(44 + ghostSway, -45);
+        ctx.lineTo(18 + ghostSway, -64);
+        ctx.lineTo(-6 + ghostSway, -42);
+        ctx.lineTo(-34 + ghostSway, -62);
+        ctx.lineTo(-62 + ghostSway, -46);
+        ctx.closePath();
+        ctx.fill();
+
+        // Phosphorescent Ghost Tendrils Dripping from Sails
+        ctx.strokeStyle = 'rgba(110, 231, 183, 0.7)';
+        ctx.lineWidth = 2;
+        for (let tx = -55; tx <= 35; tx += 18) {
+            ctx.beginPath();
+            ctx.moveTo(tx + ghostSway, -50);
+            ctx.lineTo(tx + ghostSway * 1.4, -26 + Math.sin(now / 200 + tx) * 8);
+            ctx.stroke();
+        }
+
+        // Ribcage-Like Skeletal Decaying Hull
+        ctx.fillStyle = '#021812';
+        ctx.beginPath();
+        ctx.moveTo(-155, 82);
+        ctx.lineTo(-145, 10);
+        ctx.lineTo(-180, -25);
+        ctx.lineTo(-120, -18);
+        ctx.lineTo(-75, -30);
+        ctx.lineTo(60, -30);
+        ctx.lineTo(95, -55);
+        ctx.lineTo(152, -55);
+        ctx.lineTo(142, 82);
+        ctx.closePath();
+        ctx.fill();
+
+        // Spectral Sea-Green Planking
+        const hullGrad = ctx.createLinearGradient(0, -30, 0, 75);
+        hullGrad.addColorStop(0, '#065f46');
+        hullGrad.addColorStop(0.5, '#047857');
+        hullGrad.addColorStop(1, '#022c22');
+        ctx.fillStyle = hullGrad;
+        ctx.beginPath();
+        ctx.moveTo(-148, 78);
+        ctx.lineTo(-138, 14);
+        ctx.lineTo(-118, -14);
+        ctx.lineTo(-73, -26);
+        ctx.lineTo(58, -26);
+        ctx.lineTo(92, -50);
+        ctx.lineTo(146, -50);
+        ctx.lineTo(138, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Exposed Ribcage Hull Timbers with Bioluminescent Barnacles
+        for (let rx = -125; rx <= 125; rx += 20) {
+            ctx.strokeStyle = '#022c22';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(rx, -15);
+            ctx.quadraticCurveTo(rx + 8, 30, rx - 4, 76);
+            ctx.stroke();
+
+            // Glowing green deep-sea barnacles
+            const barnacleGlow = 0.5 + Math.sin(now / 300 + rx) * 0.4;
+            ctx.fillStyle = `rgba(52, 211, 153, ${barnacleGlow})`;
+            ctx.beginPath();
+            ctx.arc(rx + 2, 20 + (Math.abs(rx) % 35), 3, 0, Math.PI * 2);
+            ctx.arc(rx - 2, 45, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Spectral Stern Lantern (The Phantom Flame)
+        const lanternGlow = 0.7 + Math.sin(now / 150) * 0.3;
+        ctx.fillStyle = `rgba(16, 185, 129, ${lanternGlow})`;
+        ctx.beginPath();
+        ctx.arc(146, -58, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#a7f3d0';
+        ctx.beginPath();
+        ctx.arc(146, -58, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Dead Man's Chest Vault
+        this.drawVaultAirlock(ctx, 85, -20, 'chest', progress, "DEAD MAN'S CHEST");
+    }
+
+    /**
      * 2. The Sunken R.M.S. Titanic
      */
     drawTitanicShipwreck(ctx, progress) {
@@ -859,6 +1202,243 @@ export class SpriteRenderer {
 
         // Purser's Office Heavy Safe Vault
         this.drawVaultAirlock(ctx, 85, -20, 'safe', progress, "PURSER'S SAFE");
+    }
+
+    /**
+     * 2b. H.M.H.S. Britannic (WWI Royal Navy Hospital Ship)
+     */
+    drawBritannicShipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Fallen & Tilted Hospital Funnels (Buff ochre with red cross emblem)
+        ctx.save();
+        ctx.translate(-45, -62);
+        ctx.rotate(0.28);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-18, -82, 36, 82);
+        ctx.fillStyle = '#d97706'; // Buff
+        ctx.fillRect(-16, -60, 32, 60);
+        ctx.fillStyle = '#f8fafc'; // White hospital collar
+        ctx.fillRect(-16, -72, 32, 16);
+        // Red cross on funnel
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(-6, -69, 12, 10);
+        ctx.fillRect(-3, -72, 6, 16);
+        ctx.restore();
+
+        // Collapsed Funnel on Seafloor
+        ctx.save();
+        ctx.translate(60, 35);
+        ctx.rotate(-1.18);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-15, -58, 30, 65);
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(-13, -40, 26, 46);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(-13, -54, 26, 16);
+        ctx.restore();
+
+        // White Promenade & Medical Wards Superstructure
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-102, -68, 194, 42);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(-100, -66, 190, 18);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(-100, -46, 190, 18);
+        ctx.fillStyle = '#059669'; // Green deck divider
+        ctx.fillRect(-102, -48, 194, 3);
+
+        // Hospital Ward Windows
+        for (let wx = -92; wx <= 80; wx += 12) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(wx, -62, 7, 10);
+            ctx.fillRect(wx, -42, 7, 10);
+            if (wx % 24 === 0) {
+                ctx.fillStyle = 'rgba(254, 240, 138, 0.65)';
+                ctx.fillRect(wx + 1, -61, 5, 8);
+            }
+        }
+
+        // Heavy Gantry Lifeboat Davits
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 3;
+        for (let dx = -85; dx <= 65; dx += 45) {
+            ctx.beginPath();
+            ctx.moveTo(dx, -66);
+            ctx.lineTo(dx + 5, -88);
+            ctx.lineTo(dx - 8, -88);
+            ctx.stroke();
+        }
+
+        // Brilliant White Hospital Hull with Emerald Green Stripe & Red Crosses
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.moveTo(-186, 82);
+        ctx.lineTo(-156, -32);
+        ctx.lineTo(148, -32);
+        ctx.lineTo(165, -48);
+        ctx.lineTo(155, -15);
+        ctx.lineTo(178, 10);
+        ctx.lineTo(162, 42);
+        ctx.lineTo(188, 82);
+        ctx.closePath();
+        ctx.fill();
+
+        // Upper White Plating
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(-172, 34);
+        ctx.lineTo(-152, -28);
+        ctx.lineTo(152, -28);
+        ctx.lineTo(172, 34);
+        ctx.closePath();
+        ctx.fill();
+
+        // Iconic Bold Emerald Green Hospital Stripe
+        ctx.fillStyle = '#059669';
+        ctx.fillRect(-153, -4, 305, 8);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(-153, -2, 305, 3);
+
+        // Lower Keel
+        const keelGrad = ctx.createLinearGradient(0, 34, 0, 80);
+        keelGrad.addColorStop(0, '#991b1b');
+        keelGrad.addColorStop(1, '#450a0a');
+        ctx.fillStyle = keelGrad;
+        ctx.fillRect(-180, 34, 358, 45);
+
+        // Three Illuminated Red Cross Emblems on the Hull
+        for (let rx of [-90, 0, 90]) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(rx, 14, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(rx - 10, 11, 20, 6);
+            ctx.fillRect(rx - 3, 4, 6, 20);
+        }
+
+        // Portholes
+        for (let px = -136; px <= 134; px += 18) {
+            ctx.fillStyle = '#090d16';
+            ctx.beginPath();
+            ctx.arc(px, -14, 4, 0, Math.PI * 2);
+            ctx.arc(px, 24, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            const flicker = 0.6 + Math.sin(now / 350 + px) * 0.25;
+            ctx.fillStyle = `rgba(254, 240, 138, ${flicker})`;
+            ctx.beginPath();
+            ctx.arc(px, -14, 2.5, 0, Math.PI * 2);
+            ctx.arc(px, 24, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Surgeon's Safe Vault
+        this.drawVaultAirlock(ctx, 85, -20, 'safe', progress, "SURGEON'S SAFE");
+    }
+
+    /**
+     * 2c. Titanic II (Modern Cruise Megaship)
+     */
+    drawModernCruiseShipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Modern Aerodynamic Dual Cruise Funnels with Blue Wave Decals
+        for (let fx of [-50, 20]) {
+            ctx.save();
+            ctx.translate(fx, -68);
+            ctx.rotate(0.12);
+            ctx.fillStyle = '#1e3a8a';
+            ctx.beginPath();
+            ctx.moveTo(-16, -65);
+            ctx.lineTo(16, -72);
+            ctx.lineTo(24, 0);
+            ctx.lineTo(-20, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Gilded Modern Wave Logo
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(2, -35, 10, -0.5, Math.PI * 0.9);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Rooftop Helicopter Pad
+        ctx.fillStyle = '#0f766e';
+        ctx.beginPath();
+        ctx.ellipse(-105, -72, 32, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(-105, -72, 26, 9, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // Helipad 'H'
+        ctx.fillStyle = '#facc15';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('H', -105, -72);
+
+        // Multi-Tier Modern Glass Balcony Decks
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-120, -62, 240, 36);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(-118, -60, 236, 16);
+        ctx.fillRect(-118, -42, 236, 16);
+
+        // Glowing Blue/Cyan Balcony Suites
+        for (let bx = -110; bx <= 100; bx += 14) {
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(bx, -57, 10, 11);
+            ctx.fillRect(bx, -39, 10, 11);
+            // Glass railing highlight
+            ctx.fillStyle = 'rgba(224, 242, 254, 0.7)';
+            ctx.fillRect(bx, -49, 10, 3);
+            ctx.fillRect(bx, -31, 10, 3);
+        }
+
+        // Sleek Modern Deep Navy & Sapphire Hull
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.moveTo(-190, 82);
+        ctx.lineTo(-160, -28);
+        ctx.lineTo(155, -28);
+        ctx.lineTo(175, 10);
+        ctx.lineTo(190, 82);
+        ctx.closePath();
+        ctx.fill();
+
+        // Sapphire Hull Paint
+        const hullGrad = ctx.createLinearGradient(0, -26, 0, 80);
+        hullGrad.addColorStop(0, '#1e3a8a');
+        hullGrad.addColorStop(0.5, '#1e40af');
+        hullGrad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = hullGrad;
+        ctx.beginPath();
+        ctx.moveTo(-182, 78);
+        ctx.lineTo(-155, -24);
+        ctx.lineTo(150, -24);
+        ctx.lineTo(182, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Neon Cyan Waterline LED Strip
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-155, 12, 320, 3);
+
+        // Modern Bulbous Bow Sonar Dome
+        ctx.fillStyle = '#1d4ed8';
+        ctx.beginPath();
+        ctx.arc(-168, 55, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Modern VIP Crypto Vault
+        this.drawVaultAirlock(ctx, 85, -20, 'safe', progress, 'VIP CRYPTO VAULT');
     }
 
     /**
@@ -1073,6 +1653,188 @@ export class SpriteRenderer {
     }
 
     /**
+     * 3b. P-38 Lightning (Bermuda Ghost)
+     */
+    drawP38Shipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Twin Vertical Tail Fins (Empennage)
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(115, -65, 18, 95);
+        ctx.fillRect(145, -65, 18, 95);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(117, -63, 14, 91);
+        ctx.fillRect(147, -63, 14, 91);
+
+        // Twin Tail Booms stretching from engine nacelles to rudder fins
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-20, -18, 145, 18);
+        ctx.fillRect(-20, 18, 145, 18);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(-18, -16, 141, 14);
+        ctx.fillRect(-18, 20, 141, 14);
+
+        // Central Fuselage / Cockpit Pod
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.ellipse(-45, 0, 68, 26, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Silver Aluminum Skin
+        const skinGrad = ctx.createLinearGradient(-45, -24, -45, 24);
+        skinGrad.addColorStop(0, '#f1f5f9');
+        skinGrad.addColorStop(0.5, '#cbd5e1');
+        skinGrad.addColorStop(1, '#64748b');
+        ctx.fillStyle = skinGrad;
+        ctx.beginPath();
+        ctx.ellipse(-45, 0, 64, 23, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shattered Teardrop Bubble Canopy
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.ellipse(-35, -2, 28, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
+        ctx.beginPath();
+        ctx.ellipse(-35, -2, 25, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Bermuda Instruments Neon Green Flicker
+        const instrFlicker = 0.5 + Math.sin(now / 180) * 0.4;
+        ctx.fillStyle = `rgba(74, 222, 128, ${instrFlicker})`;
+        ctx.beginPath();
+        ctx.arc(-28, -2, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main Wings spanning between fuselage and engine nacelles
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(-70, -58, 90, 116);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(-68, -56, 86, 112);
+
+        // Dual Engine Cowlings with Bent Propellers & Yellow Tips
+        for (let ey of [-35, 35]) {
+            // Engine cowling
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.ellipse(-52, ey, 22, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath();
+            ctx.ellipse(-52, ey, 20, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bent 3-blade prop
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(-72, ey);
+            ctx.lineTo(-88, ey - 18);
+            ctx.moveTo(-72, ey);
+            ctx.lineTo(-88, ey + 18);
+            ctx.stroke();
+
+            // Yellow tip stripes
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-86, ey - 16);
+            ctx.lineTo(-88, ey - 18);
+            ctx.moveTo(-86, ey + 16);
+            ctx.lineTo(-88, ey + 18);
+            ctx.stroke();
+        }
+
+        // Avionics Lockbox
+        this.drawVaultAirlock(ctx, 85, -15, 'military', progress, 'AVIONICS LOCKBOX');
+    }
+
+    /**
+     * 3c. Sub-Orbital Stealth Jet
+     */
+    drawStealthJetShipwreck(ctx, progress) {
+        const now = Date.now();
+
+        // Faceted Angular Delta-Wing Stealth Airframe
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.moveTo(-160, 0);   // Nose probe
+        ctx.lineTo(-80, -28);
+        ctx.lineTo(85, -110);  // Wingtip port
+        ctx.lineTo(95, -70);
+        ctx.lineTo(135, -50);
+        ctx.lineTo(145, 0);    // Tail point
+        ctx.lineTo(135, 50);
+        ctx.lineTo(95, 70);
+        ctx.lineTo(85, 110);   // Wingtip starboard
+        ctx.lineTo(-80, 28);
+        ctx.closePath();
+        ctx.fill();
+
+        // Matte Radar-Absorbent Carbon Fiber Facets
+        const carbonGrad = ctx.createLinearGradient(-150, 0, 140, 0);
+        carbonGrad.addColorStop(0, '#1e293b');
+        carbonGrad.addColorStop(0.5, '#0f172a');
+        carbonGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = carbonGrad;
+        ctx.beginPath();
+        ctx.moveTo(-152, 0);
+        ctx.lineTo(-76, -26);
+        ctx.lineTo(82, -104);
+        ctx.lineTo(90, -68);
+        ctx.lineTo(130, -48);
+        ctx.lineTo(140, 0);
+        ctx.lineTo(130, 48);
+        ctx.lineTo(90, 68);
+        ctx.lineTo(82, 104);
+        ctx.lineTo(-76, 26);
+        ctx.closePath();
+        ctx.fill();
+
+        // Canted Twin Stealth Tail Fins
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.moveTo(70, -32);
+        ctx.lineTo(135, -78);
+        ctx.lineTo(148, -45);
+        ctx.lineTo(95, -22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(70, 32);
+        ctx.lineTo(135, 78);
+        ctx.lineTo(148, 45);
+        ctx.lineTo(95, 22);
+        ctx.closePath();
+        ctx.fill();
+
+        // Scramjet Twin Vectoring Exhausts (Residual Blue Plasma Glow)
+        const plasmaPulse = 0.55 + Math.sin(now / 140) * 0.35;
+        for (let ey of [-22, 22]) {
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(130, ey - 9, 18, 18);
+            ctx.fillStyle = `rgba(56, 189, 248, ${plasmaPulse})`;
+            ctx.beginPath();
+            ctx.arc(138, ey, 7, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Cockpit Holographic HUD Reflection
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.ellipse(-65, 0, 24, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(-65, 0, 21, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Titanium Black Box Lockbox
+        this.drawVaultAirlock(ctx, 85, -15, 'military', progress, 'TITANIUM BLACK BOX');
+    }
+
+    /**
      * Draw Glowing Salvage Vault Chamber & Relic Container
      */
     drawVaultAirlock(ctx, x, y, style, progress, label) {
@@ -1282,9 +2044,23 @@ export class SpriteRenderer {
     }
 
     /**
-     * Draw the Sea Monster (The Abyssal Leviathan — 16-Bit Boss Serpent)
+     * Draw the Sea Monster (dispatches to Leviathan, Kraken, or Sea Eater)
      */
     drawMonster(ctx, monster) {
+        if (!monster || !monster.active) return;
+        if (monster.type === 'kraken') {
+            this.drawKraken(ctx, monster);
+        } else if (monster.type === 'seaeater') {
+            this.drawSeaEater(ctx, monster);
+        } else {
+            this.drawLeviathan(ctx, monster);
+        }
+    }
+
+    /**
+     * Draw the Abyssal Leviathan (Trench Dragon Serpent)
+     */
+    drawLeviathan(ctx, monster) {
         if (!monster || !monster.active) return;
 
         const { x, y, segments = [], jawAngle = 0, facing = 1, rageMode = false, stunTimer = 0 } = monster;
@@ -1558,6 +2334,470 @@ export class SpriteRenderer {
             const waveR = 25 + ((now / 15) % 35);
             ctx.beginPath();
             ctx.arc(48, 2, waveR, -Math.PI / 2.8, Math.PI / 2.8);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * Draw The Kraken (Colossal Abyssal Squid Boss)
+     */
+    drawKraken(ctx, monster) {
+        if (!monster || !monster.active) return;
+        const { x, y, segments = [], facing = 1, rageMode = false, stunTimer = 0 } = monster;
+        const now = Date.now();
+        const isStunned = stunTimer > 0;
+
+        // 1. Articulated Tentacles with Sucker Cups & Bioluminescent Nodes
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const seg = segments[i];
+            const prev = i > 0 ? segments[i - 1] : { x, y };
+            const segAngle = Math.atan2(prev.y - seg.y, prev.x - seg.x);
+            const size = 30 * (1 - i / (segments.length * 1.5));
+
+            ctx.save();
+            ctx.translate(Math.round(seg.x), Math.round(seg.y));
+            ctx.rotate(segAngle);
+
+            // Sucker cups along upper and lower rim of tentacle
+            for (let s of [-1, 1]) {
+                const sy = s * (size * 0.75);
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(0, sy, size * 0.32, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = rageMode ? '#f43f5e' : '#06b6d4';
+                ctx.beginPath();
+                ctx.arc(0, sy, size * 0.22, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sucker inner cup
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(0, sy, size * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Armored Tentacle Flesh
+            ctx.fillStyle = '#0f051d';
+            ctx.beginPath();
+            ctx.arc(0, 0, size + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            const segGrad = ctx.createRadialGradient(-size * 0.2, -size * 0.2, size * 0.1, 0, 0, size);
+            if (rageMode) {
+                segGrad.addColorStop(0, '#f43f5e');
+                segGrad.addColorStop(0.7, '#831843');
+                segGrad.addColorStop(1, '#4c0519');
+            } else {
+                segGrad.addColorStop(0, '#c084fc');
+                segGrad.addColorStop(0.65, '#6b21a8');
+                segGrad.addColorStop(1, '#2e1065');
+            }
+            ctx.fillStyle = segGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bioluminescent Chromatophore Node Wave
+            const bioPulse = 0.4 + Math.max(0, Math.sin(now / 150 - i * 0.6)) * 0.6;
+            ctx.fillStyle = rageMode ? `rgba(254, 240, 138, ${bioPulse})` : `rgba(6, 182, 212, ${bioPulse})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Stun electric sparks
+            if (isStunned && (i + Math.floor(now / 60)) % 2 === 0) {
+                ctx.strokeStyle = '#67e8f9';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-size, -size * 0.5);
+                ctx.lineTo(0, size * 0.8);
+                ctx.lineTo(size, -size * 0.3);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // 2. Colossal Cephalopod Mantle Dome & Hypnotic Eye
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.scale(facing, 1);
+
+        // Undulating Lateral Mantle Fins (Top & Bottom stabilizer wings)
+        const finWave = Math.sin(now / 160) * 8;
+        ctx.fillStyle = rageMode ? 'rgba(244, 63, 94, 0.75)' : 'rgba(168, 85, 247, 0.75)';
+        // Top fin
+        ctx.beginPath();
+        ctx.moveTo(-20, -18);
+        ctx.quadraticCurveTo(-75, -55 + finWave, -115, -25);
+        ctx.lineTo(-45, -12);
+        ctx.closePath();
+        ctx.fill();
+        // Bottom fin
+        ctx.beginPath();
+        ctx.moveTo(-20, 18);
+        ctx.quadraticCurveTo(-75, 55 - finWave, -115, 25);
+        ctx.lineTo(-45, 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // Massive Bulbous Squid Mantle (stretching backwards)
+        ctx.fillStyle = '#090314';
+        ctx.beginPath();
+        ctx.moveTo(10, -28);
+        ctx.quadraticCurveTo(-65, -46, -118, -4);
+        ctx.quadraticCurveTo(-65, 46, 10, 28);
+        ctx.closePath();
+        ctx.fill();
+
+        const mantleGrad = ctx.createRadialGradient(-35, -5, 10, -45, 0, 75);
+        if (rageMode) {
+            mantleGrad.addColorStop(0, '#f43f5e');
+            mantleGrad.addColorStop(0.6, '#831843');
+            mantleGrad.addColorStop(1, '#3b071a');
+        } else {
+            mantleGrad.addColorStop(0, '#a855f7');
+            mantleGrad.addColorStop(0.65, '#581c87');
+            mantleGrad.addColorStop(1, '#1e053a');
+        }
+        ctx.fillStyle = mantleGrad;
+        ctx.beginPath();
+        ctx.moveTo(8, -26);
+        ctx.quadraticCurveTo(-62, -43, -114, -4);
+        ctx.quadraticCurveTo(-62, 43, 8, 26);
+        ctx.closePath();
+        ctx.fill();
+
+        // Chromatophore Texture Spots along Mantle
+        for (let sp = -95; sp <= -15; sp += 16) {
+            const spotPulse = 0.5 + Math.sin(now / 220 + sp) * 0.35;
+            ctx.fillStyle = rageMode ? `rgba(254, 205, 211, ${spotPulse})` : `rgba(34, 211, 238, ${spotPulse})`;
+            ctx.beginPath();
+            ctx.arc(sp, (sp % 12) * 1.5, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Funnel / Siphon underneath mantle emitting bubbles/ink
+        ctx.fillStyle = rageMode ? '#9f1239' : '#3b0764';
+        ctx.beginPath();
+        ctx.moveTo(-25, 22);
+        ctx.lineTo(-45, 36);
+        ctx.lineTo(-32, 40);
+        ctx.lineTo(-14, 26);
+        ctx.closePath();
+        ctx.fill();
+
+        // Parrot Beak (Razor-sharp obsidian center jaw)
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(14, -8);
+        ctx.lineTo(38, 0);
+        ctx.lineTo(14, 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.moveTo(16, -6);
+        ctx.lineTo(35, 0);
+        ctx.lineTo(16, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Front Tentacle Arm Base Crown
+        ctx.fillStyle = rageMode ? '#e11d48' : '#7e22ce';
+        ctx.beginPath();
+        ctx.arc(6, 0, 24, -Math.PI / 2, Math.PI / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Colossal Hypnotic Eye
+        ctx.fillStyle = '#05020a';
+        ctx.beginPath();
+        ctx.arc(-8, -4, 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glowing Bioluminescent Ring around eye
+        const eyeRingPulse = 0.6 + Math.sin(now / 140) * 0.3;
+        ctx.strokeStyle = rageMode ? `rgba(254, 240, 138, ${eyeRingPulse})` : `rgba(6, 182, 212, ${eyeRingPulse})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(-8, -4, 13.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Hypnotic Golden Iris
+        ctx.fillStyle = isStunned ? '#93c5fd' : (rageMode ? '#fef08a' : '#facc15');
+        ctx.beginPath();
+        ctx.arc(-8, -4, 11, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Horizontal Bar Pupil (Cephalopod W-Pupil / Bar)
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(-8, -4, 8, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ocular Specular Glint
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-5, -7, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ink Shockwaves when Raging
+        if (rageMode) {
+            ctx.strokeStyle = 'rgba(131, 24, 67, 0.65)';
+            ctx.lineWidth = 3.5;
+            const waveR = 25 + ((now / 14) % 45);
+            ctx.beginPath();
+            ctx.arc(10, 0, waveR, -Math.PI / 2.2, Math.PI / 2.2);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * Draw The Sea Eater (Devourer of the Deep / Colossal Maw Boss)
+     */
+    drawSeaEater(ctx, monster) {
+        if (!monster || !monster.active) return;
+        const { x, y, segments = [], jawAngle = 0, facing = 1, rageMode = false, stunTimer = 0 } = monster;
+        const now = Date.now();
+        const isStunned = stunTimer > 0;
+
+        // 1. Heavy Armored Volcanic Basalt Segments with Magma Fissures
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const seg = segments[i];
+            const prev = i > 0 ? segments[i - 1] : { x, y };
+            const segAngle = Math.atan2(prev.y - seg.y, prev.x - seg.x);
+            const size = 34 * (1 - i / (segments.length * 1.4));
+
+            ctx.save();
+            ctx.translate(Math.round(seg.x), Math.round(seg.y));
+            ctx.rotate(segAngle);
+
+            // Tail fin / thermal vent tail on last segment
+            if (i === segments.length - 1) {
+                ctx.fillStyle = '#7c2d12';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-30, -20);
+                ctx.lineTo(-20, 0);
+                ctx.lineTo(-30, 20);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Dorsal Volcanic Spines & Steam Vents
+            ctx.fillStyle = '#431407';
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.4, -size * 0.7);
+            ctx.lineTo(-size * 0.1, -size * 1.6);
+            ctx.lineTo(size * 0.3, -size * 0.7);
+            ctx.closePath();
+            ctx.fill();
+
+            // Outer Basalt Carapace
+            ctx.fillStyle = '#09090b';
+            ctx.beginPath();
+            ctx.arc(0, 0, size + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            const segGrad = ctx.createRadialGradient(-size * 0.2, -size * 0.2, size * 0.1, 0, 0, size);
+            segGrad.addColorStop(0, rageMode ? '#ea580c' : '#c2410c');
+            segGrad.addColorStop(0.55, '#431407');
+            segGrad.addColorStop(1, '#180805');
+            ctx.fillStyle = segGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glowing Magma Fissures traversing the segment
+            const magmaPulse = 0.5 + Math.sin(now / 160 - i * 0.7) * 0.45;
+            ctx.strokeStyle = `rgba(249, 115, 22, ${magmaPulse})`;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.7, 0);
+            ctx.lineTo(-size * 0.2, size * 0.4);
+            ctx.lineTo(size * 0.3, -size * 0.2);
+            ctx.lineTo(size * 0.7, size * 0.3);
+            ctx.stroke();
+
+            // Ventral Belly Thermal Pores
+            ctx.fillStyle = `rgba(254, 240, 138, ${magmaPulse * 0.8})`;
+            ctx.beginPath();
+            ctx.arc(0, size * 0.5, size * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Stunned Electric Arcs
+            if (isStunned && (i + Math.floor(now / 60)) % 2 === 0) {
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-size, -size * 0.5);
+                ctx.lineTo(0, size * 0.8);
+                ctx.lineTo(size, -size * 0.3);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // 2. Colossal Nightmare Maw & Glowing Magma Gullet
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.scale(facing, 1);
+
+        // Huge Cavernous Gullet Interior Vortex (pulsing vacuum maw)
+        const gulletGrad = ctx.createRadialGradient(24, 6, 4, 18, 6, 52);
+        gulletGrad.addColorStop(0, rageMode ? '#fef08a' : '#f97316');
+        gulletGrad.addColorStop(0.45, rageMode ? '#dc2626' : '#9a3412');
+        gulletGrad.addColorStop(1, '#180502');
+        ctx.fillStyle = gulletGrad;
+        ctx.beginPath();
+        ctx.arc(16, 6, 36, -0.6, 0.95);
+        ctx.lineTo(-6, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner Vacuum Swirl Lines
+        const swirlAngle = (now / 120) % (Math.PI * 2);
+        ctx.strokeStyle = 'rgba(254, 240, 138, 0.55)';
+        ctx.lineWidth = 1.5;
+        for (let a = 0; a < 3; a++) {
+            const rot = swirlAngle + (a * Math.PI * 2) / 3;
+            ctx.beginPath();
+            ctx.arc(20, 6, 16, rot, rot + 1.2);
+            ctx.stroke();
+        }
+
+        // --- Hinged Giant Lower Jaw with Dangling Glowing Barbel ---
+        ctx.save();
+        ctx.translate(-8, 10);
+        ctx.rotate(jawAngle * 1.35 + 0.15);
+
+        // Lower jawbone
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.moveTo(-8, -4);
+        ctx.lineTo(65, 8);
+        ctx.lineTo(54, 28);
+        ctx.lineTo(-8, 22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#431407';
+        ctx.beginPath();
+        ctx.moveTo(-6, -2);
+        ctx.lineTo(62, 9);
+        ctx.lineTo(52, 25);
+        ctx.lineTo(-6, 20);
+        ctx.closePath();
+        ctx.fill();
+
+        // Dangling Bioluminescent Chin Barbel (Angler Lure)
+        const barbelSway = Math.sin(now / 180) * 12;
+        ctx.strokeStyle = '#ea580c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(35, 24);
+        ctx.quadraticCurveTo(45 + barbelSway * 0.5, 45, 30 + barbelSway, 72);
+        ctx.stroke();
+
+        // Glowing Lure Orb at Tip of Barbel
+        const lurePulse = 0.65 + Math.sin(now / 120) * 0.35;
+        ctx.fillStyle = `rgba(239, 68, 68, ${lurePulse})`;
+        ctx.beginPath();
+        ctx.arc(30 + barbelSway, 72, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(30 + barbelSway, 72, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Lower Triple-Row Long Needle Fangs
+        ctx.fillStyle = '#fef08a';
+        for (let bx = 2; bx <= 56; bx += 7) {
+            const fangH = bx > 36 ? 16 : 11;
+            ctx.beginPath();
+            ctx.moveTo(bx, 6);
+            ctx.lineTo(bx + 2, 6 - fangH);
+            ctx.lineTo(bx + 5, 7);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // --- Armored Upper Skull & Snout ---
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.ellipse(8, -14, 55, 33, 0, Math.PI, Math.PI * 2);
+        ctx.lineTo(68, 6);
+        ctx.lineTo(-44, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        const headGrad = ctx.createLinearGradient(0, -42, 0, 8);
+        headGrad.addColorStop(0, rageMode ? '#ea580c' : '#c2410c');
+        headGrad.addColorStop(0.65, '#431407');
+        headGrad.addColorStop(1, '#180805');
+        ctx.fillStyle = headGrad;
+        ctx.beginPath();
+        ctx.ellipse(8, -14, 51, 30, 0, Math.PI, Math.PI * 2);
+        ctx.lineTo(64, 4);
+        ctx.lineTo(-40, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Upper Long Needle Fangs
+        ctx.fillStyle = '#fef08a';
+        for (let tx = 2; tx <= 58; tx += 8) {
+            const fangLen = tx > 38 ? 17 : 12;
+            ctx.beginPath();
+            ctx.moveTo(tx, 4);
+            ctx.lineTo(tx + 2, 4 + fangLen);
+            ctx.lineTo(tx + 6, 4);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Cranial Volcanic Ridge Horns
+        ctx.fillStyle = '#1c0a06';
+        ctx.beginPath();
+        ctx.moveTo(-16, -26);
+        ctx.lineTo(-65, -72);
+        ctx.lineTo(-32, -18);
+        ctx.closePath();
+        ctx.fill();
+
+        // Deep-Set Menacing Molten Eye
+        ctx.fillStyle = '#050201';
+        ctx.beginPath();
+        ctx.arc(22, -18, 11, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = isStunned ? '#93c5fd' : (rageMode ? '#fef08a' : '#ef4444');
+        ctx.beginPath();
+        ctx.arc(22, -18, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(21, -24, 2.5, 12);
+
+        // Specular glint
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(24, -22, 2, 2);
+
+        // Suction Shockwaves when Raging
+        if (rageMode) {
+            ctx.strokeStyle = 'rgba(234, 88, 12, 0.6)';
+            ctx.lineWidth = 3.5;
+            const waveR = 25 + ((now / 13) % 45);
+            ctx.beginPath();
+            ctx.arc(58, 6, waveR, -Math.PI / 2.6, Math.PI / 2.6);
             ctx.stroke();
         }
 
