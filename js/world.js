@@ -472,134 +472,430 @@ export class World {
     }
 
     /**
-     * Draw Background Water Gradient & Depth Zones
+     * Draw Background Water Gradient, Sky Horizon, Soft God-Rays, Parallax Reefs & Seafloor
      */
     drawBackground(ctx, cameraY, viewportHeight) {
-        // Dynamic water gradient based on depth
+        const now = Date.now();
+
+        // 1. Deep Multi-Stop Ocean Depth Gradient
         const grad = ctx.createLinearGradient(0, 0, 0, this.height);
-        grad.addColorStop(0.0, '#38bdf8'); // Surface sky blue
-        grad.addColorStop(0.08, '#0284c7'); // Sunlit top
-        grad.addColorStop(0.28, '#0369a1'); // Upper blue
-        grad.addColorStop(0.55, '#0f172a'); // Twilight zone
-        grad.addColorStop(0.85, '#020617'); // Abyssal midnight
-        grad.addColorStop(1.0, '#000000'); // Bottom trench
+        grad.addColorStop(0.0, '#38bdf8'); // Surface turquoise
+        grad.addColorStop(0.03, '#0ea5e9'); // Shallow sunlit reef
+        grad.addColorStop(0.15, '#0284c7'); // Upper pelagic blue
+        grad.addColorStop(0.35, '#0369a1'); // Mesopelagic twilight
+        grad.addColorStop(0.60, '#0f172a'); // Midnight bathypelagic
+        grad.addColorStop(0.85, '#020617'); // Abyssal trench
+        grad.addColorStop(1.0, '#01030a'); // Hadal seafloor
 
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Sunbeams at the surface (y: 0 to 400)
-        if (cameraY < 400) {
+        // 2. Sky, Clouds, Distant Island & Animated Waves above y = 52
+        if (cameraY < 200) {
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, 54);
+            skyGrad.addColorStop(0, '#0284c7');
+            skyGrad.addColorStop(0.6, '#7dd3fc');
+            skyGrad.addColorStop(1, '#fef08a');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, this.width, 54);
+
+            // Distant Volcanic Island & Lighthouse Silhouette on Horizon
+            ctx.fillStyle = '#0369a1';
+            ctx.beginPath();
+            ctx.moveTo(490, 52);
+            ctx.lineTo(525, 28);
+            ctx.lineTo(555, 36);
+            ctx.lineTo(585, 22);
+            ctx.lineTo(630, 52);
+            ctx.closePath();
+            ctx.fill();
+
+            // Tiny pixel lighthouse on island peak
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(582, 12, 5, 11);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(582, 15, 5, 3);
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(583, 10, 3, 2);
+
+            // Pixelated Fluffy Horizon Clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            const cloudDrift = (now / 120) % this.width;
+            for (let cx = -100; cx < this.width + 100; cx += 160) {
+                const xPos = (cx + cloudDrift) % (this.width + 120) - 60;
+                ctx.fillRect(xPos, 14, 38, 6);
+                ctx.fillRect(xPos + 6, 10, 24, 4);
+                ctx.fillRect(xPos + 12, 7, 12, 3);
+            }
+        }
+
+        // 3. Soft Diagonal Volumetric Sunbeams (no harsh vertical stripes!)
+        if (cameraY < 580) {
             ctx.save();
-            ctx.globalAlpha = Math.max(0, 1 - cameraY / 400) * 0.35;
-            ctx.fillStyle = '#ffffff';
-            for (let bx = 50; bx < this.width; bx += 90) {
-                const slant = Math.sin(Date.now() / 1500 + bx) * 20;
+            const fade = Math.max(0, 1 - cameraY / 580);
+            for (let i = 0; i < 6; i++) {
+                const bx = 55 + i * 115;
+                const sway = Math.sin(now / 1800 + i * 1.3) * 18;
+                const topW = 24 + (i % 2) * 14;
+                const botW = topW * 2.8;
+
+                const rayGrad = ctx.createLinearGradient(bx, 50, bx + 95, 520);
+                rayGrad.addColorStop(0, `rgba(254, 249, 195, ${0.22 * fade})`);
+                rayGrad.addColorStop(0.45, `rgba(186, 230, 253, ${0.10 * fade})`);
+                rayGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+                ctx.fillStyle = rayGrad;
                 ctx.beginPath();
-                ctx.moveTo(bx, 0);
-                ctx.lineTo(bx + 40, 0);
-                ctx.lineTo(bx + 70 + slant, 400);
-                ctx.lineTo(bx + 10 + slant, 400);
+                ctx.moveTo(bx, 50);
+                ctx.lineTo(bx + topW, 50);
+                ctx.lineTo(bx + 110 + botW + sway, 520);
+                ctx.lineTo(bx + 110 + sway, 520);
+                ctx.closePath();
                 ctx.fill();
             }
             ctx.restore();
         }
 
-        // Surface water ripple line (y = 50)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        for (let rx = 0; rx < this.width; rx += 20) {
-            const wave = Math.sin(Date.now() / 300 + rx * 0.1) * 3;
-            ctx.fillRect(rx, 50 + wave, 14, 2);
+        // 4. Animated Surface Waves & Seafoam Crest (y = 48 to 56)
+        if (cameraY < 220) {
+            ctx.fillStyle = 'rgba(186, 230, 253, 0.65)';
+            ctx.beginPath();
+            ctx.moveTo(0, 60);
+            for (let wx = 0; wx <= this.width; wx += 16) {
+                const wy = 51 + Math.sin(now / 320 + wx * 0.08) * 3;
+                ctx.lineTo(wx, wy);
+            }
+            ctx.lineTo(this.width, 60);
+            ctx.closePath();
+            ctx.fill();
+
+            // Crisp white pixel seafoam highlights
+            ctx.fillStyle = '#ffffff';
+            for (let rx = 0; rx < this.width; rx += 18) {
+                const wy = 50 + Math.sin(now / 320 + rx * 0.08) * 3;
+                ctx.fillRect(rx, wy, 10, 2);
+            }
         }
 
-        // Seabed / Seafloor Sand and Volcanic Rocks (y = 2260)
-        ctx.fillStyle = '#1e1b18';
-        ctx.fillRect(0, this.seafloorY, this.width, this.height - this.seafloorY);
-        ctx.fillStyle = '#292524';
-        for (let bx = 0; bx < this.width; bx += 25) {
-            const hill = Math.sin(bx * 0.05) * 12;
-            ctx.fillRect(bx, this.seafloorY - 8 + hill, 25, 20);
+        // 5. Distant Background Trench Silhouettes (Atmospheric Depth)
+        ctx.save();
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.28)';
+        for (let py = 350; py < 2100; py += 380) {
+            const isLeft = (py / 380) % 2 === 0;
+            ctx.beginPath();
+            if (isLeft) {
+                ctx.moveTo(0, py - 90);
+                ctx.lineTo(95, py - 40);
+                ctx.lineTo(65, py + 50);
+                ctx.lineTo(0, py + 110);
+            } else {
+                ctx.moveTo(this.width, py - 90);
+                ctx.lineTo(this.width - 95, py - 40);
+                ctx.lineTo(this.width - 65, py + 50);
+                ctx.lineTo(this.width, py + 110);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // 6. Detailed Seafloor Dunes, Volcanic Rocks, Corals & Kelp (y = 2260)
+        // Background sand dune layer
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath();
+        ctx.moveTo(0, this.height);
+        for (let sx = 0; sx <= this.width; sx += 30) {
+            const dune = Math.sin(sx * 0.025 + 1.2) * 14;
+            ctx.lineTo(sx, this.seafloorY - 12 + dune);
+        }
+        ctx.lineTo(this.width, this.height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Foreground seafloor sediment & basalt crust
+        const floorGrad = ctx.createLinearGradient(0, this.seafloorY - 8, 0, this.height);
+        floorGrad.addColorStop(0, '#44403c');
+        floorGrad.addColorStop(0.25, '#292524');
+        floorGrad.addColorStop(1, '#0c0a09');
+        ctx.fillStyle = floorGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, this.height);
+        for (let bx = 0; bx <= this.width; bx += 20) {
+            const hill = Math.sin(bx * 0.04) * 8 + Math.cos(bx * 0.09) * 4;
+            ctx.lineTo(bx, this.seafloorY + hill);
+        }
+        ctx.lineTo(this.width, this.height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Seafloor Coral Fans, Glowing Abyssal Crystals & Pebbles
+        for (let fx = 35; fx < this.width - 30; fx += 65) {
+            const baseY = this.seafloorY + Math.sin(fx * 0.04) * 7;
+
+            // Basalt cobble stone
+            ctx.fillStyle = '#1c1917';
+            ctx.beginPath();
+            ctx.arc(fx + 14, baseY + 6, 7, Math.PI, 0);
+            ctx.fill();
+
+            if (fx % 130 === 35) {
+                // Glowing Cyan Abyssal Crystal Cluster
+                ctx.fillStyle = '#06b6d4';
+                ctx.beginPath();
+                ctx.moveTo(fx - 4, baseY + 2);
+                ctx.lineTo(fx - 8, baseY - 14);
+                ctx.lineTo(fx, baseY + 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#67e8f9';
+                ctx.beginPath();
+                ctx.moveTo(fx, baseY + 2);
+                ctx.lineTo(fx + 3, baseY - 19);
+                ctx.lineTo(fx + 7, baseY + 2);
+                ctx.fill();
+            } else {
+                // Deep-Sea Crimson / Magenta Gorgonian Coral Fan
+                ctx.strokeStyle = '#db2777';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(fx, baseY + 2);
+                ctx.lineTo(fx - 7, baseY - 12);
+                ctx.moveTo(fx, baseY - 3);
+                ctx.lineTo(fx + 8, baseY - 14);
+                ctx.moveTo(fx, baseY + 2);
+                ctx.lineTo(fx, baseY - 16);
+                ctx.stroke();
+            }
         }
     }
 
     /**
-     * Draw Caverns and Hazards
+     * Draw Chiseled Cavern Rock Formations, Spiked Naval Mines, Vents & Torpedoes
      */
     drawCavernsAndHazards(ctx, sprites = null) {
-        // Hydrothermal Oxygen Vents
+        const now = Date.now();
+
+        // 1. Hydrothermal Oxygen Vents
         if (sprites && sprites.drawOxygenVent) {
             this.oxygenVents.forEach(vent => {
                 sprites.drawOxygenVent(ctx, vent);
             });
         }
 
-        // Cavern spires
-        this.caverns.forEach(c => {
-            ctx.fillStyle = c.color;
+        // 2. Chiseled Multi-Layered Cavern Rock Shelves & Stalactites
+        this.caverns.forEach((c, idx) => {
+            ctx.save();
+
+            // Hanging Stalactites along the bottom underside of the rock block
+            ctx.fillStyle = '#090d16';
+            for (let sx = c.x + 14; sx < c.x + c.width - 14; sx += 22) {
+                const stalH = 8 + ((sx * 7 + idx * 13) % 14);
+                ctx.beginPath();
+                ctx.moveTo(sx - 5, c.y + c.height - 2);
+                ctx.lineTo(sx, c.y + c.height + stalH);
+                ctx.lineTo(sx + 5, c.y + c.height - 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Outer Dark Rock Silhouette
+            ctx.fillStyle = '#020617';
             ctx.beginPath();
-            ctx.roundRect(c.x, c.y, c.width, c.height, 8);
+            ctx.roundRect(c.x, c.y, c.width, c.height, 10);
             ctx.fill();
 
-            // Coral / crystal moss accents
-            ctx.fillStyle = '#059669';
-            ctx.fillRect(c.x + 8, c.y, Math.min(25, c.width - 16), 3);
-            ctx.fillRect(c.x + c.width - 24, c.y, 16, 3);
+            // Main Stratified Rock Body Gradient
+            const rockGrad = ctx.createLinearGradient(c.x, c.y, c.x, c.y + c.height);
+            rockGrad.addColorStop(0, '#334155');
+            rockGrad.addColorStop(0.35, '#1e293b');
+            rockGrad.addColorStop(1, '#0f172a');
+            ctx.fillStyle = rockGrad;
+            ctx.beginPath();
+            ctx.roundRect(c.x + 2, c.y + 2, c.width - 4, c.height - 4, 8);
+            ctx.fill();
+
+            // Top Chiseled Ledge Highlight
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.roundRect(c.x + 4, c.y + 3, c.width - 8, 10, 4);
+            ctx.fill();
+
+            // Horizontal Geological Strata & Craggy Fractures
+            ctx.strokeStyle = 'rgba(2, 6, 23, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(c.x + 8, c.y + c.height * 0.45);
+            ctx.lineTo(c.x + c.width * 0.6, c.y + c.height * 0.52);
+            ctx.lineTo(c.x + c.width - 8, c.y + c.height * 0.42);
+            ctx.moveTo(c.x + 16, c.y + c.height * 0.72);
+            ctx.lineTo(c.x + c.width - 14, c.y + c.height * 0.68);
+            ctx.stroke();
+
+            // Bio-Moss, Barnacles & Glowing Crystals on Top Ledge
+            ctx.fillStyle = c.y > 1200 ? '#0d9488' : '#059669';
+            for (let mx = c.x + 10; mx < c.x + c.width - 18; mx += 18) {
+                const mw = 10 + (mx % 8);
+                ctx.fillRect(mx, c.y + 1, mw, 4);
+            }
+
+            // Decorative Coral or Glowing Crystal on the Shelf
+            if (c.y < 1100) {
+                // Orange/Pink Tube Coral on upper shelves
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(c.x + 22, c.y - 8, 4, 9);
+                ctx.fillRect(c.x + 28, c.y - 11, 4, 12);
+                ctx.fillRect(c.x + 34, c.y - 6, 4, 7);
+            } else {
+                // Glowing Bioluminescent Crystal Shards on deep shelves
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(c.x + 24, c.y + 2);
+                ctx.lineTo(c.x + 28, c.y - 12);
+                ctx.lineTo(c.x + 33, c.y + 2);
+                ctx.fill();
+                ctx.fillStyle = '#bae6fd';
+                ctx.beginPath();
+                ctx.moveTo(c.x + 31, c.y + 2);
+                ctx.lineTo(c.x + 36, c.y - 8);
+                ctx.lineTo(c.x + 39, c.y + 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
         });
 
-        // Hazards (Mines)
+        // 3. High-Yield Spiked Naval Mines (2x Damage Threat)
         this.hazards.forEach(h => {
             if (h.type === 'mine') {
                 ctx.save();
                 ctx.translate(Math.round(h.x), Math.round(h.y));
 
-                // Anchor cable going down
-                ctx.strokeStyle = '#475569';
+                // Faint Pulsing Red Proximity Danger Aura
+                const pulse = 0.15 + Math.sin(now / 220) * 0.1;
+                ctx.strokeStyle = `rgba(239, 68, 68, ${pulse})`;
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, 60);
+                ctx.arc(0, 0, h.radius + 11, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Mine ball
-                ctx.fillStyle = '#334155';
+                // Heavy Stud-Link Anchor Chain descending into the dark
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.moveTo(0, h.radius);
+                ctx.lineTo(0, 68);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 8 Conical Contact Horns / Spikes around the perimeter
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    const cos = Math.cos(a);
+                    const sin = Math.sin(a);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath();
+                    ctx.moveTo(cos * (h.radius - 2) - sin * 3.5, sin * (h.radius - 2) + cos * 3.5);
+                    ctx.lineTo(cos * (h.radius + 7), sin * (h.radius + 7));
+                    ctx.lineTo(cos * (h.radius - 2) + sin * 3.5, sin * (h.radius - 2) - cos * 3.5);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Red warning tip on each contact horn
+                    ctx.fillStyle = '#dc2626';
+                    ctx.beginPath();
+                    ctx.arc(cos * (h.radius + 6), sin * (h.radius + 6), 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Cast-Iron Spherical Casing with 3D Metallic Shading
+                ctx.fillStyle = '#090d16';
+                ctx.beginPath();
+                ctx.arc(0, 0, h.radius + 1, 0, Math.PI * 2);
+                ctx.fill();
+
+                const mineGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, h.radius);
+                mineGrad.addColorStop(0, '#64748b');
+                mineGrad.addColorStop(0.55, '#334155');
+                mineGrad.addColorStop(1, '#0f172a');
+                ctx.fillStyle = mineGrad;
                 ctx.beginPath();
                 ctx.arc(0, 0, h.radius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Spikes
-                ctx.fillStyle = '#dc2626';
-                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-                    const sx = Math.cos(a) * (h.radius + 6);
-                    const sy = Math.sin(a) * (h.radius + 6);
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                // Equatorial bolted flange seam
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-h.radius + 1, 0);
+                ctx.lineTo(h.radius - 1, 0);
+                ctx.stroke();
 
-                // Blinking red warning diode
-                const blink = Math.sin(Date.now() / 200) > 0;
+                // Center Armed Proximity Sensor Lens
+                const blink = Math.sin(now / 160) > 0;
+                ctx.fillStyle = '#090d16';
+                ctx.beginPath();
+                ctx.arc(0, 0, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+
                 ctx.fillStyle = blink ? '#ef4444' : '#7f1d1d';
                 ctx.beginPath();
                 ctx.arc(0, 0, 4, 0, Math.PI * 2);
                 ctx.fill();
 
+                if (blink) {
+                    ctx.fillStyle = '#fef08a';
+                    ctx.fillRect(-1.5, -1.5, 2, 2);
+                }
+
                 ctx.restore();
             }
         });
 
-        // Torpedo projectiles
+        // 4. Active Sonic Torpedo Projectiles
         this.torpedoes.forEach(t => {
+            const dir = t.vx >= 0 ? 1 : -1;
             ctx.save();
             ctx.translate(Math.round(t.x), Math.round(t.y));
+            ctx.scale(dir, 1);
+
+            // Trailing sonic cavitation ring
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(-12, 0, 3, 6, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Stabilizer tail fins
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.moveTo(-10, -6);
+            ctx.lineTo(-5, -3);
+            ctx.lineTo(-5, 3);
+            ctx.lineTo(-10, 6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Metallic torpedo body
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(-8, -3, 14, 6);
             ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(-8, -3, 16, 6);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(5, -2, 4, 4);
+            ctx.fillRect(-8, -1, 14, 2);
+
+            // Glowing sonic warhead nose cone
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.moveTo(6, -3);
+            ctx.lineTo(12, 0);
+            ctx.lineTo(6, 3);
+            ctx.closePath();
+            ctx.fill();
+
             ctx.restore();
         });
     }
 
     /**
-     * Draw Particles (marine snow, bubbles, sparkles)
+     * Draw Particles (marine snow, specular bubbles, 4-point sparkles)
      */
     drawParticles(ctx) {
         this.particles.forEach(p => {
@@ -607,16 +903,27 @@ export class World {
                 ctx.fillStyle = `rgba(224, 242, 254, ${p.alpha})`;
                 ctx.fillRect(p.x, p.y, p.size, p.size);
             } else if (p.type === 'bubble') {
+                ctx.save();
                 ctx.strokeStyle = `rgba(186, 230, 253, ${p.alpha})`;
+                ctx.fillStyle = `rgba(224, 242, 254, ${p.alpha * 0.25})`;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.stroke();
+                // Tiny specular bubble highlight dot
+                if (p.size >= 2.5) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+                    ctx.fillRect(p.x - p.size * 0.4, p.y - p.size * 0.4, 1.2, 1.2);
+                }
+                ctx.restore();
             } else if (p.type === 'sparkle') {
+                ctx.save();
                 ctx.fillStyle = p.color || '#fef08a';
-                ctx.globalAlpha = p.alpha;
-                ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-                ctx.globalAlpha = 1.0;
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillRect(p.x - p.size, p.y - 1, p.size * 2, 2);
+                ctx.fillRect(p.x - 1, p.y - p.size, 2, p.size * 2);
+                ctx.restore();
             }
         });
     }
@@ -627,16 +934,16 @@ export class World {
     drawSonar(ctx, sub) {
         if (!sub.sonarActive) return;
         ctx.save();
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(sub.x, sub.y, sub.sonarRadius, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.strokeStyle = 'rgba(186, 230, 253, 0.2)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(186, 230, 253, 0.22)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(sub.x, sub.y, Math.max(0, sub.sonarRadius - 20), 0, Math.PI * 2);
+        ctx.arc(sub.x, sub.y, Math.max(0, sub.sonarRadius - 22), 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
     }
