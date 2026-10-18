@@ -198,7 +198,7 @@ Where $M_{\text{grade}}$ rewards higher difficulty:
 The project is built entirely on native web standards (HTML5 Canvas 2D, CSS3, Vanilla ES6 Modules, and the Web Audio API). It operates 100% offline without third-party frameworks, build pipelines, or external audio asset dependencies.
 
 ```
-jj-game-prototype/
+abyssal-vault/
 ├── index.html           # Main DOM structure, canvas, and UI overlay modals
 ├── style.css            # Retro pixel typography, layout, HUD badges, animations
 ├── README.md            # Quickstart guide and control reference
